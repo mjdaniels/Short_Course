@@ -1,0 +1,36 @@
+model {  
+
+ for (i in 1:N)
+      { 
+	    y[i]~dbern(p[i])
+        logit(p[i])<-x1[i]*alpha0[id[i]]+x2[i]*theta0[id[i]]+theta*((trt[i]-1)*x2[i])                                  
+                 }
+				 
+	for (j in 1:N1){
+	alpha0[j]~dnorm(mu.alpha0,tau.alpha0)
+	mu.theta0[j]<-beta+phi*alpha0[j]
+    theta0[j]~dnorm(mu.theta0[j],tau.theta0)              
+      }
+	  mutheta0<-beta+phi*mu.alpha0
+	  
+	alphanew0~dnorm(mu.alpha0,tau.alpha0)
+	mu.thetanew0<-beta+phi*alphanew0
+    thetanew0~dnorm(mu.thetanew0,tau.theta0)
+	  
+
+for (i in 1:nobs) {
+        logitpnew[i]<-xnew1[i]*alphanew0+xnew2[i]*thetanew0+theta*((trtnew[i]-1)*xnew2[i]) 
+        pnew[i]<-exp(logitpnew[i])/(1+exp(logitpnew[i]))		
+ ypdf[i]<-ynew[i]*log(pnew[i])+(1-ynew[i])*log(1-pnew[i])
+}
+
+ynewlogli<-sum(ypdf)
+
+#Prior distributions 
+         mu.alpha0~dnorm(0,1.0E-5)
+         beta~dnorm(0, 1.0E-5)
+		 theta~dnorm(0, 1.0E-5)
+		 phi~dnorm(0,1.0E-5)
+         tau.alpha0~dgamma(0.01,0.01)
+		 tau.theta0~dgamma(0.01,0.01)
+} 

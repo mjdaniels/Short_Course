@@ -1,0 +1,47 @@
+model{
+
+for (i in 1:n){
+	for (t in 1:T) {
+		y[i,t]~dnorm(mu.y[i,t],tau.y)
+		mu.y[i,t]<-A*pnorm(age[i,t],mu[i],sigmasq.i[i])
+	}
+	mu[i]~dnorm(mu0,tau.mu)
+	sigmasq.i[i]<-1/sigmasq[i]
+	sigmasq[i]~dlnorm(sigma0,tau.sigma)
+}
+
+
+############## prior
+tau.y~dgamma(1.0E-3, 1.0E-3)
+A~dgamma(1,1)
+mu0~dnorm(0,0.01)
+sigma0~dnorm(0,0.01)
+sigma.mu~dunif(0,100)
+sigma.sigma~dunif(0,100)
+tau.mu<-1/pow(sigma.mu,2)
+tau.sigma<-1/pow(sigma.sigma,2)
+
+for (i in 1:10) {
+ for (j in 1:50) {
+ mu.ypred[i,j]<-A*pnorm(agegrid[j],mu[i],sigmasq.i[i])
+ }
+}
+
+  for (j in 1:50) {
+    mupop.y[1,j]<-0}
+
+ 
+ for (i in 1:1000) {
+ mupred[i]~dnorm(mu0,tau.mu)
+ sigmasqpred.i[i]<-1/sigmasqpred[i]
+ sigmasqpred[i]~dlnorm(sigma0,tau.sigma)
+  for (j in 1:50) {
+ muypred[i,j]<-A*pnorm(agegrid[j],mupred[i],sigmasqpred.i[i])
+ mupop.y[i+1,j]<-(mupop.y[i,j]*(i-1)+muypred[i,j])/i}
+ }
+ 
+ for (j in 1:50) {
+ mupop[j]<-mupop.y[1001,j]
+}
+
+}

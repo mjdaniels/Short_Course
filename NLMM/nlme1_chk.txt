@@ -1,0 +1,40 @@
+model{
+
+for (i in 1:nrec){
+		y[i]~dnorm(mu.y[i],tau.y)
+		mu.y[i]<-A*pnorm(age[i],mu[id[i]],sigmasq.i[id[i]])
+		chi.obs[i]<-pow((y[i]-mu.y[i]),2)*tau.y
+		ypdf[i]<-log(1/sqrt(2*3.14)*sqrt(tau.y))-1/2*tau.y*pow((y[i]-mu.y[i]),2)
+		}
+for (i in 1:nsub){
+	mu[i]~dnorm(mu0,tau.mu)
+	sigmasq.i[i]<-1/sigmasq[i]
+	sigmasq[i]~dlnorm(sigma0,tau.sigma)
+}
+
+for (i in 1:nrec)
+   { 
+   yrep[i]~dnorm(mu.y[i],tau.y)
+   chi.rep[i]<-pow((yrep[i]-mu.y[i]),2)*tau.y
+   } 
+   
+   chiobs<-sum(chi.obs[])
+   chirep<-sum(chi.rep[])
+   chi.diff<-chirep-chiobs
+   chi.diff1<-step(chirep-chiobs)
+   
+   for (i in 1:nsub) {
+  logli[i]<-inprod(ypdf[1:nrec],grp[1:nrec,i])
+}
+############## prior
+tau.y~dgamma(1.0E-3, 1.0E-3)
+A~dgamma(1,1)
+mu0~dnorm(0,0.01)
+sigma0~dnorm(0,0.01)
+sigma.mu~dunif(0,100)
+sigma.sigma~dunif(0,100)
+tau.mu<-1/pow(sigma.mu,2)
+tau.sigma<-1/pow(sigma.sigma,2)
+
+
+}

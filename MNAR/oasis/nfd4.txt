@@ -1,0 +1,512 @@
+# all variable names for ET has the suffix 'e' 
+# all variable names for ST has the suffix 's'
+
+Model{ 
+
+####### Enhancement arm ####################################
+
+for (i in 1:N1) {
+  	Y[i,1] 		~ dbern(pie[i,1])
+    pie[i,1] <-exp(betae1[1])/(1+exp(betae1[1])) 
+    ue[i] <- 1 }
+	
+for (i in N1+1:N2) {
+  	Y[i,1] 		~ dbern(pie[i,1])
+    pie[i,1] <-exp(betae2[1])/(1+exp(betae2[1])) 
+
+    for (j in 2:2){
+ 	Y[i,j]		~  dbern(pie[i,j])
+    pie[i,j]<- exp(gammae2[j]+thetae2[j]*Y[i,j-1])/(1+exp(gammae2[j]+thetae2[j]*Y[i,j-1]))	
+    }
+    ue[i] <- 2
+		}
+		
+for (i in N2+1:N3) {
+  	Y[i,1] 		~ dbern(pie[i,1])
+    pie[i,1] <-exp(betae3[1])/(1+exp(betae3[1])) 
+
+    for (j in 2:3){
+ 	Y[i,j]		~  dbern(pie[i,j])
+    pie[i,j]<- exp(gammae3[j]+thetae3[j]*Y[i,j-1])/(1+exp(gammae3[j]+thetae3[j]*Y[i,j-1]))	
+    }
+    ue[i] <- 3
+		}
+		
+for (i in N3+1:N4) {
+  	Y[i,1] 		~ dbern(pie[i,1])
+    pie[i,1] <-exp(betae4[1])/(1+exp(betae4[1])) 
+
+    for (j in 2:4){
+ 	Y[i,j]		~  dbern(pie[i,j])
+    pie[i,j]<- exp(gammae4[j]+thetae4[j]*Y[i,j-1])/(1+exp(gammae4[j]+thetae4[j]*Y[i,j-1]))	
+    }
+    ue[i] <- 4
+		}
+
+
+############# Standard arm ##############################
+
+for (i in N4+1:N5) {
+  	Y[i,1] 		~ dbern(pis[i,1])
+    pis[i,1] <-exp(betas1[1])/(1+exp(betas1[1])) 
+    us[i] <- 1 }
+	
+for (i in N5+1:N6) {
+  	Y[i,1] 		~ dbern(pis[i,1])
+    pis[i,1] <-exp(betas2[1])/(1+exp(betas2[1])) 
+
+    for (j in 2:2){
+ 	Y[i,j]		~  dbern(pis[i,j])
+    pis[i,j]<- exp(gammas2[j]+thetas2[j]*Y[i,j-1])/(1+exp(gammas2[j]+thetas2[j]*Y[i,j-1]))	
+    }
+    us[i] <- 2
+		}
+		
+for (i in N6+1:N7) {
+  	Y[i,1] 		~ dbern(pis[i,1])
+    pis[i,1] <-exp(betas3[1])/(1+exp(betas3[1])) 
+
+    for (j in 2:3){
+ 	Y[i,j]		~  dbern(pis[i,j])
+    pis[i,j]<- exp(gammas3[j]+thetas3[j]*Y[i,j-1])/(1+exp(gammas3[j]+thetas3[j]*Y[i,j-1]))	
+    }
+    us[i] <- 3
+		}
+		
+for (i in N7+1:N8) {
+  	Y[i,1] 		~ dbern(pis[i,1])
+    pis[i,1] <-exp(betas4[1])/(1+exp(betas4[1])) 
+
+    for (j in 2:4){
+ 	Y[i,j]		~  dbern(pis[i,j])
+    pis[i,j]<- exp(gammas4[j]+thetas4[j]*Y[i,j-1])/(1+exp(gammas4[j]+thetas4[j]*Y[i,j-1]))	
+    }
+    us[i] <- 4
+		}
+
+    for (i in 1:N4) {
+        ue[i] ~ dcat(alphae[])
+    }
+	
+	for (i in N4+1:N8) {
+        us[i] ~ dcat(alphas[])
+    }
+######## Compute marginal probabilities and OR at each month
+mpie1[1]<-exp(betae1[1])/(1+exp(betae1[1]))
+mpie2[1]<-exp(betae2[1])/(1+exp(betae2[1]))
+mpie3[1]<-exp(betae3[1])/(1+exp(betae3[1]))
+mpie4[1]<-exp(betae4[1])/(1+exp(betae4[1]))
+
+gammaenum1[2]<-(exp(gammae2[2])/(1+exp(gammae2[2]))*alphae[2]*(1-mpie2[1])+
+            exp(gammae3[2])/(1+exp(gammae3[2]))*alphae[3]*(1-mpie3[1])+
+			exp(gammae4[2])/(1+exp(gammae4[2]))*alphae[4]*(1-mpie4[1]))
+gammae1[2]<-log(gammaenum1[2]/
+			(alphae[2]*(1-mpie2[1])+alphae[3]*(1-mpie3[1])+alphae[4]*(1-mpie4[1])-
+			gammaenum1[2]))+deltae0
+thetaenum1[2]<-(exp(gammae2[2]+thetae2[2])/(1+exp(gammae2[2]+thetae2[2]))*alphae[2]*mpie2[1]+
+            exp(gammae3[2]+thetae3[2])/(1+exp(gammae3[2]+thetae3[2]))*alphae[3]*mpie3[1]+
+			exp(gammae4[2]+thetae4[2])/(1+exp(gammae4[2]+thetae4[2]))*alphae[4]*mpie4[1])
+thetae1[2]<-log(thetaenum1[2]/
+			(alphae[2]*mpie2[1]+alphae[3]*mpie3[1]+alphae[4]*mpie4[1]-
+			thetaenum1[2]))+deltae1-gammae1[2]
+
+for (j in 2:2) {			
+betae1[j]<-log((exp(gammae1[j])+exp(2*gammae1[j]+thetae1[j])+exp(betae1[j-1]+gammae1[j]+thetae1[j])+
+          exp(betae1[j-1]+2*gammae1[j]+thetae1[j]))/(1+exp(betae1[j-1])+exp(betae1[j-1]+gammae1[j])+exp(gammae1[j]+thetae1[j])))
+mpie1[j]<-exp(betae1[j])/(1+exp(betae1[j]))	
+
+betae2[j]<-log((exp(gammae2[j])+exp(2*gammae2[j]+thetae2[j])+exp(betae2[j-1]+gammae2[j]+thetae2[j])+
+          exp(betae2[j-1]+2*gammae2[j]+thetae2[j]))/(1+exp(betae2[j-1])+exp(betae2[j-1]+gammae2[j])+exp(gammae2[j]+thetae2[j])))
+mpie2[j]<-exp(betae2[j])/(1+exp(betae2[j]))	
+
+betae3[j]<-log((exp(gammae3[j])+exp(2*gammae3[j]+thetae3[j])+exp(betae3[j-1]+gammae3[j]+thetae3[j])+
+          exp(betae3[j-1]+2*gammae3[j]+thetae3[j]))/(1+exp(betae3[j-1])+exp(betae3[j-1]+gammae3[j])+exp(gammae3[j]+thetae3[j])))
+mpie3[j]<-exp(betae3[j])/(1+exp(betae3[j]))	
+
+betae4[j]<-log((exp(gammae4[j])+exp(2*gammae4[j]+thetae4[j])+exp(betae4[j-1]+gammae4[j]+thetae4[j])+
+          exp(betae4[j-1]+2*gammae4[j]+thetae4[j]))/(1+exp(betae4[j-1])+exp(betae4[j-1]+gammae4[j])+exp(gammae4[j]+thetae4[j])))
+mpie4[j]<-exp(betae4[j])/(1+exp(betae4[j]))	
+}
+			
+	
+gammae2[3]<-log((exp(gammae3[3])/(1+exp(gammae3[3]))*alphae[3]*(1-mpie3[2])+
+			exp(gammae4[3])/(1+exp(gammae4[3]))*alphae[4]*(1-mpie4[2]))/
+			(alphae[3]*(1-mpie3[2])+alphae[4]*(1-mpie4[2])-
+            (exp(gammae3[3])/(1+exp(gammae3[3]))*alphae[3]*(1-mpie3[2])+
+			exp(gammae4[3])/(1+exp(gammae4[3]))*alphae[4]*(1-mpie4[2]))))+deltae0
+thetae2[3]<-log((exp(gammae3[3]+thetae3[3])/(1+exp(gammae3[3]+thetae3[3]))*alphae[3]*mpie3[2]+
+			exp(gammae4[3]+thetae4[3])/(1+exp(gammae4[3]+thetae4[3]))*alphae[4]*mpie4[2])/
+			(alphae[3]*mpie3[2]+alphae[4]*mpie4[2]-
+            (exp(gammae3[3]+thetae3[3])/(1+exp(gammae3[3]+thetae3[3]))*alphae[3]*mpie3[2]+
+			exp(gammae4[3]+thetae4[3])/(1+exp(gammae4[3]+thetae4[3]))*alphae[4]*mpie4[2])))+deltae1-gammae1[3]
+			
+gammaenum1[3]<-(exp(gammae2[3])/(1+exp(gammae2[3]))*alphae[2]*(1-mpie2[2])+
+            exp(gammae3[3])/(1+exp(gammae3[3]))*alphae[3]*(1-mpie3[2])+
+			exp(gammae4[3])/(1+exp(gammae4[3]))*alphae[4]*(1-mpie4[2]))
+gammae1[3]<-log(gammaenum1[3]/
+			(alphae[2]*(1-mpie2[2])+alphae[3]*(1-mpie3[2])+alphae[4]*(1-mpie4[2])-
+			gammaenum1[3]))+deltae0
+thetaenum1[3]<-(exp(gammae2[3]+thetae2[3])/(1+exp(gammae2[3]+thetae2[3]))*alphae[2]*mpie2[2]+
+            exp(gammae3[3]+thetae3[3])/(1+exp(gammae3[3]+thetae3[3]))*alphae[3]*mpie3[2]+
+			exp(gammae4[3]+thetae4[3])/(1+exp(gammae4[3]+thetae4[3]))*alphae[4]*mpie4[2])
+thetae1[3]<-log(thetaenum1[3]/
+			(alphae[2]*mpie2[2]+alphae[3]*mpie3[2]+alphae[4]*mpie4[2]-
+			thetaenum1[3]))+deltae1-gammae1[3]
+
+for (j in 3:3) {			
+betae1[j]<-log((exp(gammae1[j])+exp(2*gammae1[j]+thetae1[j])+exp(betae1[j-1]+gammae1[j]+thetae1[j])+
+          exp(betae1[j-1]+2*gammae1[j]+thetae1[j]))/(1+exp(betae1[j-1])+exp(betae1[j-1]+gammae1[j])+exp(gammae1[j]+thetae1[j])))
+mpie1[j]<-exp(betae1[j])/(1+exp(betae1[j]))	
+
+betae2[j]<-log((exp(gammae2[j])+exp(2*gammae2[j]+thetae2[j])+exp(betae2[j-1]+gammae2[j]+thetae2[j])+
+          exp(betae2[j-1]+2*gammae2[j]+thetae2[j]))/(1+exp(betae2[j-1])+exp(betae2[j-1]+gammae2[j])+exp(gammae2[j]+thetae2[j])))
+mpie2[j]<-exp(betae2[j])/(1+exp(betae2[j]))	
+
+betae3[j]<-log((exp(gammae3[j])+exp(2*gammae3[j]+thetae3[j])+exp(betae3[j-1]+gammae3[j]+thetae3[j])+
+          exp(betae3[j-1]+2*gammae3[j]+thetae3[j]))/(1+exp(betae3[j-1])+exp(betae3[j-1]+gammae3[j])+exp(gammae3[j]+thetae3[j])))
+mpie3[j]<-exp(betae3[j])/(1+exp(betae3[j]))	
+
+betae4[j]<-log((exp(gammae4[j])+exp(2*gammae4[j]+thetae4[j])+exp(betae4[j-1]+gammae4[j]+thetae4[j])+
+          exp(betae4[j-1]+2*gammae4[j]+thetae4[j]))/(1+exp(betae4[j-1])+exp(betae4[j-1]+gammae4[j])+exp(gammae4[j]+thetae4[j])))
+mpie4[j]<-exp(betae4[j])/(1+exp(betae4[j]))	
+}
+			
+gammae3[4]<-gammae4[4]+deltae0
+thetae3[4]<-thetae4[4]+deltae1-deltae0
+
+gammae2[4]<-log((exp(gammae3[4])/(1+exp(gammae3[4]))*alphae[3]*(1-mpie3[3])+
+			exp(gammae4[4])/(1+exp(gammae4[4]))*alphae[4]*(1-mpie4[3]))/
+			(alphae[3]*(1-mpie3[3])+alphae[4]*(1-mpie4[3])-
+            (exp(gammae3[4])/(1+exp(gammae3[4]))*alphae[3]*(1-mpie3[3])+
+			exp(gammae4[4])/(1+exp(gammae4[4]))*alphae[4]*(1-mpie4[3]))))+deltae0
+thetae2[4]<-log((exp(gammae3[4]+thetae3[4])/(1+exp(gammae3[4]+thetae3[4]))*alphae[3]*mpie3[3]+
+			exp(gammae4[4]+thetae4[4])/(1+exp(gammae4[4]+thetae4[4]))*alphae[4]*mpie4[3])/
+			(alphae[3]*mpie3[3]+alphae[4]*mpie4[3]-
+            (exp(gammae3[4]+thetae3[4])/(1+exp(gammae3[4]+thetae3[4]))*alphae[3]*mpie3[3]+
+			exp(gammae4[4]+thetae4[4])/(1+exp(gammae4[4]+thetae4[4]))*alphae[4]*mpie4[3])))+deltae1-gammae2[4]
+
+gammae1[4]<-gammae2[4]
+thetae1[4]<-thetae2[4]
+
+			
+for (j in 4:4) {			
+betae1[j]<-log((exp(gammae1[j])+exp(2*gammae1[j]+thetae1[j])+exp(betae1[j-1]+gammae1[j]+thetae1[j])+
+          exp(betae1[j-1]+2*gammae1[j]+thetae1[j]))/(1+exp(betae1[j-1])+exp(betae1[j-1]+gammae1[j])+exp(gammae1[j]+thetae1[j])))
+mpie1[j]<-exp(betae1[j])/(1+exp(betae1[j]))	
+
+betae2[j]<-log((exp(gammae2[j])+exp(2*gammae2[j]+thetae2[j])+exp(betae2[j-1]+gammae2[j]+thetae2[j])+
+          exp(betae2[j-1]+2*gammae2[j]+thetae2[j]))/(1+exp(betae2[j-1])+exp(betae2[j-1]+gammae2[j])+exp(gammae2[j]+thetae2[j])))
+mpie2[j]<-exp(betae2[j])/(1+exp(betae2[j]))	
+
+betae3[j]<-log((exp(gammae3[j])+exp(2*gammae3[j]+thetae3[j])+exp(betae3[j-1]+gammae3[j]+thetae3[j])+
+          exp(betae3[j-1]+2*gammae3[j]+thetae3[j]))/(1+exp(betae3[j-1])+exp(betae3[j-1]+gammae3[j])+exp(gammae3[j]+thetae3[j])))
+mpie3[j]<-exp(betae3[j])/(1+exp(betae3[j]))	
+
+betae4[j]<-log((exp(gammae4[j])+exp(2*gammae4[j]+thetae4[j])+exp(betae4[j-1]+gammae4[j]+thetae4[j])+
+          exp(betae4[j-1]+2*gammae4[j]+thetae4[j]))/(1+exp(betae4[j-1])+exp(betae4[j-1]+gammae4[j])+exp(gammae4[j]+thetae4[j])))
+mpie4[j]<-exp(betae4[j])/(1+exp(betae4[j]))	
+}
+
+for (j in 1:4) {
+mpie[j]<-alphae[1]*mpie1[j]+alphae[2]*mpie2[j]+alphae[3]*mpie3[j]+alphae[4]*mpie4[j]	
+}
+
+######## standard ######
+mpis1[1]<-exp(betas1[1])/(1+exp(betas1[1]))
+mpis2[1]<-exp(betas2[1])/(1+exp(betas2[1]))
+mpis3[1]<-exp(betas3[1])/(1+exp(betas3[1]))
+mpis4[1]<-exp(betas4[1])/(1+exp(betas4[1]))
+
+gammasnum1[2]<-(exp(gammas2[2])/(1+exp(gammas2[2]))*alphae[2]*(1-mpis2[1])+
+            exp(gammas3[2])/(1+exp(gammas3[2]))*alphae[3]*(1-mpis3[1])+
+			exp(gammas4[2])/(1+exp(gammas4[2]))*alphae[4]*(1-mpis4[1]))
+gammas1[2]<-log(gammasnum1[2]/
+			(alphae[2]*(1-mpis2[1])+alphae[3]*(1-mpis3[1])+alphae[4]*(1-mpis4[1])-
+			gammasnum1[2]))+deltas0
+thetasnum1[2]<-(exp(gammas2[2]+thetas2[2])/(1+exp(gammas2[2]+thetas2[2]))*alphae[2]*mpis2[1]+
+            exp(gammas3[2]+thetas3[2])/(1+exp(gammas3[2]+thetas3[2]))*alphae[3]*mpis3[1]+
+			exp(gammas4[2]+thetas4[2])/(1+exp(gammas4[2]+thetas4[2]))*alphae[4]*mpis4[1])
+thetas1[2]<-log(thetasnum1[2]/
+			(alphae[2]*mpis2[1]+alphae[3]*mpis3[1]+alphae[4]*mpis4[1]-
+			thetasnum1[2]))+deltas1-gammas1[2]
+			
+for (j in 2:2) {			
+betas1[j]<-log((exp(gammas1[j])+exp(2*gammas1[j]+thetas1[j])+exp(betas1[j-1]+gammas1[j]+thetas1[j])+
+          exp(betas1[j-1]+2*gammas1[j]+thetas1[j]))/(1+exp(betas1[j-1])+exp(betas1[j-1]+gammas1[j])+exp(gammas1[j]+thetas1[j])))
+mpis1[j]<-exp(betas1[j])/(1+exp(betas1[j]))	
+
+betas2[j]<-log((exp(gammas2[j])+exp(2*gammas2[j]+thetas2[j])+exp(betas2[j-1]+gammas2[j]+thetas2[j])+
+          exp(betas2[j-1]+2*gammas2[j]+thetas2[j]))/(1+exp(betas2[j-1])+exp(betas2[j-1]+gammas2[j])+exp(gammas2[j]+thetas2[j])))
+mpis2[j]<-exp(betas2[j])/(1+exp(betas2[j]))	
+
+betas3[j]<-log((exp(gammas3[j])+exp(2*gammas3[j]+thetas3[j])+exp(betas3[j-1]+gammas3[j]+thetas3[j])+
+          exp(betas3[j-1]+2*gammas3[j]+thetas3[j]))/(1+exp(betas3[j-1])+exp(betas3[j-1]+gammas3[j])+exp(gammas3[j]+thetas3[j])))
+mpis3[j]<-exp(betas3[j])/(1+exp(betas3[j]))	
+
+betas4[j]<-log((exp(gammas4[j])+exp(2*gammas4[j]+thetas4[j])+exp(betas4[j-1]+gammas4[j]+thetas4[j])+
+          exp(betas4[j-1]+2*gammas4[j]+thetas4[j]))/(1+exp(betas4[j-1])+exp(betas4[j-1]+gammas4[j])+exp(gammas4[j]+thetas4[j])))
+mpis4[j]<-exp(betas4[j])/(1+exp(betas4[j]))	
+}
+gammas2[3]<-log((exp(gammas3[3])/(1+exp(gammas3[3]))*alphas[3]*(1-mpis3[2])+
+			exp(gammas4[3])/(1+exp(gammas4[3]))*alphas[4]*(1-mpis4[2]))/
+			(alphas[3]*(1-mpis3[2])+alphas[4]*(1-mpis4[2])-
+            (exp(gammas3[3])/(1+exp(gammas3[3]))*alphas[3]*(1-mpis3[2])+
+			exp(gammas4[3])/(1+exp(gammas4[3]))*alphas[4]*(1-mpis4[2]))))+deltas0
+thetas2[3]<-log((exp(gammas3[3]+thetas3[3])/(1+exp(gammas3[3]+thetas3[3]))*alphas[3]*mpis3[2]+
+			exp(gammas4[3]+thetas4[3])/(1+exp(gammas4[3]+thetas4[3]))*alphas[4]*mpis4[2])/
+			(alphas[3]*mpis3[2]+alphas[4]*mpis4[2]-
+            (exp(gammas3[3]+thetas3[3])/(1+exp(gammas3[3]+thetas3[3]))*alphas[3]*mpis3[2]+
+			exp(gammas4[3]+thetas4[3])/(1+exp(gammas4[3]+thetas4[3]))*alphas[4]*mpis4[2])))+deltas1-gammas1[3]
+			
+gammasnum1[3]<-(exp(gammas2[3])/(1+exp(gammas2[3]))*alphas[2]*(1-mpis2[2])+
+            exp(gammas3[3])/(1+exp(gammas3[3]))*alphas[3]*(1-mpis3[2])+
+			exp(gammas4[3])/(1+exp(gammas4[3]))*alphas[4]*(1-mpis4[2]))
+gammas1[3]<-log(gammasnum1[3]/
+			(alphas[2]*(1-mpis2[2])+alphas[3]*(1-mpis3[2])+alphas[4]*(1-mpis4[2])-
+			gammasnum1[3]))+deltas0
+thetasnum1[3]<-(exp(gammas2[3]+thetas2[3])/(1+exp(gammas2[3]+thetas2[3]))*alphas[2]*mpis2[2]+
+            exp(gammas3[3]+thetas3[3])/(1+exp(gammas3[3]+thetas3[3]))*alphas[3]*mpis3[2]+
+			exp(gammas4[3]+thetas4[3])/(1+exp(gammas4[3]+thetas4[3]))*alphas[4]*mpis4[2])
+thetas1[3]<-log(thetasnum1[3]/
+			(alphas[2]*mpis2[2]+alphas[3]*mpis3[2]+alphas[4]*mpis4[2]-
+			thetasnum1[3]))+deltas1-gammas1[3]
+
+for (j in 3:3) {			
+betas1[j]<-log((exp(gammas1[j])+exp(2*gammas1[j]+thetas1[j])+exp(betas1[j-1]+gammas1[j]+thetas1[j])+
+          exp(betas1[j-1]+2*gammas1[j]+thetas1[j]))/(1+exp(betas1[j-1])+exp(betas1[j-1]+gammas1[j])+exp(gammas1[j]+thetas1[j])))
+mpis1[j]<-exp(betas1[j])/(1+exp(betas1[j]))	
+
+betas2[j]<-log((exp(gammas2[j])+exp(2*gammas2[j]+thetas2[j])+exp(betas2[j-1]+gammas2[j]+thetas2[j])+
+          exp(betas2[j-1]+2*gammas2[j]+thetas2[j]))/(1+exp(betas2[j-1])+exp(betas2[j-1]+gammas2[j])+exp(gammas2[j]+thetas2[j])))
+mpis2[j]<-exp(betas2[j])/(1+exp(betas2[j]))	
+
+betas3[j]<-log((exp(gammas3[j])+exp(2*gammas3[j]+thetas3[j])+exp(betas3[j-1]+gammas3[j]+thetas3[j])+
+          exp(betas3[j-1]+2*gammas3[j]+thetas3[j]))/(1+exp(betas3[j-1])+exp(betas3[j-1]+gammas3[j])+exp(gammas3[j]+thetas3[j])))
+mpis3[j]<-exp(betas3[j])/(1+exp(betas3[j]))	
+
+betas4[j]<-log((exp(gammas4[j])+exp(2*gammas4[j]+thetas4[j])+exp(betas4[j-1]+gammas4[j]+thetas4[j])+
+          exp(betas4[j-1]+2*gammas4[j]+thetas4[j]))/(1+exp(betas4[j-1])+exp(betas4[j-1]+gammas4[j])+exp(gammas4[j]+thetas4[j])))
+mpis4[j]<-exp(betas4[j])/(1+exp(betas4[j]))	
+}
+			
+gammas3[4]<-gammas4[4]+deltas0
+thetas3[4]<-thetas4[4]+deltas1-deltas0
+
+gammas2[4]<-log((exp(gammas3[4])/(1+exp(gammas3[4]))*alphas[3]*(1-mpis3[3])+
+			exp(gammas4[4])/(1+exp(gammas4[4]))*alphas[4]*(1-mpis4[3]))/
+			(alphas[3]*(1-mpis3[3])+alphas[4]*(1-mpis4[3])-
+            (exp(gammas3[4])/(1+exp(gammas3[4]))*alphas[3]*(1-mpis3[3])+
+			exp(gammas4[4])/(1+exp(gammas4[4]))*alphas[4]*(1-mpis4[3]))))+deltas0
+thetas2[4]<-log((exp(gammas3[4]+thetas3[4])/(1+exp(gammas3[4]+thetas3[4]))*alphas[3]*mpis3[3]+
+			exp(gammas4[4]+thetas4[4])/(1+exp(gammas4[4]+thetas4[4]))*alphas[4]*mpis4[3])/
+			(alphas[3]*mpis3[3]+alphas[4]*mpis4[3]-
+            (exp(gammas3[4]+thetas3[4])/(1+exp(gammas3[4]+thetas3[4]))*alphas[3]*mpis3[3]+
+			exp(gammas4[4]+thetas4[4])/(1+exp(gammas4[4]+thetas4[4]))*alphas[4]*mpis4[3])))+deltas1-gammas2[4]
+
+gammas1[4]<-gammas2[4]
+thetas1[4]<-thetas2[4]
+			
+for (j in 4:4) {			
+betas1[j]<-log((exp(gammas1[j])+exp(2*gammas1[j]+thetas1[j])+exp(betas1[j-1]+gammas1[j]+thetas1[j])+
+          exp(betas1[j-1]+2*gammas1[j]+thetas1[j]))/(1+exp(betas1[j-1])+exp(betas1[j-1]+gammas1[j])+exp(gammas1[j]+thetas1[j])))
+mpis1[j]<-exp(betas1[j])/(1+exp(betas1[j]))	
+
+betas2[j]<-log((exp(gammas2[j])+exp(2*gammas2[j]+thetas2[j])+exp(betas2[j-1]+gammas2[j]+thetas2[j])+
+          exp(betas2[j-1]+2*gammas2[j]+thetas2[j]))/(1+exp(betas2[j-1])+exp(betas2[j-1]+gammas2[j])+exp(gammas2[j]+thetas2[j])))
+mpis2[j]<-exp(betas2[j])/(1+exp(betas2[j]))	
+
+betas3[j]<-log((exp(gammas3[j])+exp(2*gammas3[j]+thetas3[j])+exp(betas3[j-1]+gammas3[j]+thetas3[j])+
+          exp(betas3[j-1]+2*gammas3[j]+thetas3[j]))/(1+exp(betas3[j-1])+exp(betas3[j-1]+gammas3[j])+exp(gammas3[j]+thetas3[j])))
+mpis3[j]<-exp(betas3[j])/(1+exp(betas3[j]))	
+
+betas4[j]<-log((exp(gammas4[j])+exp(2*gammas4[j]+thetas4[j])+exp(betas4[j-1]+gammas4[j]+thetas4[j])+
+          exp(betas4[j-1]+2*gammas4[j]+thetas4[j]))/(1+exp(betas4[j-1])+exp(betas4[j-1]+gammas4[j])+exp(gammas4[j]+thetas4[j])))
+mpis4[j]<-exp(betas4[j])/(1+exp(betas4[j]))	
+}
+
+for (j in 1:4) {
+mpis[j]<-alphas[1]*mpis1[j]+alphas[2]*mpis2[j]+alphas[3]*mpis3[j]+alphas[4]*mpis4[j]	
+OR[j]<-(mpie[j]*(1-mpis[j]))/(mpis[j]*(1-mpie[j]))
+}
+			
+
+
+
+########## Priors #########################################
+
+####### Priors for identifiable parameters ###############
+
+
+diff<-mpie[4]-mpis[4]
+diff1<-step(diff)
+
+alphae[1:4] ~ ddirch(a[1, 1:4])
+alphas[1:4] ~ ddirch(a[2, 1:4])
+
+betae1[1]	~ dnorm(0, 1.0E-2)
+betae2[1]	~ dnorm(0, 1.0E-2)
+betae3[1]	~ dnorm(0, 1.0E-2)
+betae4[1]	~ dnorm(0, 1.0E-2)
+
+thetae2[2]  ~ dnorm(0, 1.0E-2)
+thetae3[2]  ~ dnorm(0, 1.0E-2)
+thetae4[2]  ~ dnorm(0, 1.0E-2)
+
+gammae2[2]  ~ dnorm(0, 1.0E-2)
+gammae3[2]  ~ dnorm(0, 1.0E-2)
+gammae4[2]  ~ dnorm(0, 1.0E-2)
+
+thetae3[3]  ~ dnorm(0, 1.0E-2)
+thetae4[3]  ~ dnorm(0, 1.0E-2)
+
+gammae3[3]  ~ dnorm(0, 1.0E-2)
+gammae4[3]  ~ dnorm(0, 1.0E-2)
+
+thetae4[4]  ~ dnorm(0, 1.0E-2)
+
+gammae4[4]  ~ dnorm(0, 1.0E-2)
+
+betas1[1]	~ dnorm(0, 1.0E-2)
+betas2[1]	~ dnorm(0, 1.0E-2)
+betas3[1]	~ dnorm(0, 1.0E-2)
+betas4[1]	~ dnorm(0, 1.0E-2)
+
+thetas2[2]  ~ dnorm(0, 1.0E-2)
+thetas3[2]  ~ dnorm(0, 1.0E-2)
+thetas4[2]  ~ dnorm(0, 1.0E-2)
+
+gammas2[2]  ~ dnorm(0, 1.0E-2)
+gammas3[2]  ~ dnorm(0, 1.0E-2)
+gammas4[2]  ~ dnorm(0, 1.0E-2)
+
+thetas3[3]  ~ dnorm(0, 1.0E-2)
+thetas4[3]  ~ dnorm(0, 1.0E-2)
+
+gammas3[3]  ~ dnorm(0, 1.0E-2)
+gammas4[3]  ~ dnorm(0, 1.0E-2)
+
+thetas4[4]  ~ dnorm(0, 1.0E-2)
+
+gammas4[4]  ~ dnorm(0, 1.0E-2)
+
+
+
+######### delta0_et #####################################
+
+d0e[1]<-s0e[1]*z0e[1]+mu0e[1]
+mu0e[1]~dnorm(1.1, tau0e[1])
+z0e[1]~dnorm(0,1)I(0,)
+s0e[1]<-(6*1.5)/sqrt(pow(6,2)+1)
+tau0e[1]<-1/(pow(1.5,2)/(pow(6,2)+1))
+
+d0e[2]<-s0e[2]*z0e[2]+mu0e[2]
+mu0e[2]~dnorm(1.8, tau0e[2])
+z0e[2]~dnorm(0,1)I(0,)
+s0e[2]<-(1.1*2.3)/sqrt(pow(1.1,2)+1)
+tau0e[2]<-1/(pow(2.3,2)/(pow(1.1,2)+1))
+
+d0e[3]<-s0e[3]*z0e[3]+mu0e[3]
+mu0e[3]~dnorm(0.08, tau0e[3])
+z0e[3]~dnorm(0,1)I(0,)
+s0e[3]<-(3*0.9)/sqrt(pow(3,2)+1)
+tau0e[3]<-1/(pow(0.9,2)/(pow(3,2)+1))
+
+d0e[4]<-s0e[4]*z0e[4]+mu0e[4]
+mu0e[4]~dnorm(0.41, tau0e[4])
+z0e[4]~dnorm(0,1)I(0,)
+s0e[4]<-0
+tau0e[4]<-1/pow(0.315,2)
+
+############ delta1_et ##################################
+
+d1e[1]<-s1e[1]*z1e[1]+mu1e[1]
+mu1e[1]~dnorm(0.0, tau1e[1])
+z1e[1]~dnorm(0,1)I(0,)
+s1e[1]<-(0.36*0.9)/sqrt(pow(0.36,2)+1)
+tau1e[1]<-1/(pow(0.9,2)/(pow(0.36,2)+1))
+
+d1e[2]<-s1e[2]*z1e[2]+mu1e[2]
+mu1e[2]~dnorm(1.8,tau1e[2])
+z1e[2]~dnorm(0,1)I(0,)
+s1e[2]<-(-0.1*0.79)/sqrt(pow(-0.1,2)+1)
+tau1e[2]<-1/(pow(0.79,2)/(pow(-0.1,2)+1))
+
+d1e[3]<-s1e[3]*z1e[3]+mu1e[3]
+mu1e[3] ~ dnorm(1.9, tau1e[3])
+z1e[3]~dnorm(0,1)I(0,)
+s1e[3]<-(-0.16*0.75)/sqrt(pow(-0.16,2)+1)
+tau1e[3]<-1/(pow(0.75,2)/(pow(-0.16,2)+1))
+
+d1e[4]<-s1e[4]*z1e[4]+mu1e[4]
+mu1e[4]~ dnorm(0.11, tau1e[4])
+z1e[4]~dnorm(0,1)I(0,)
+s1e[4]<-(1.52*20)/sqrt(pow(20,2)+1)
+tau1e[4]<-1/(pow(1.52,2)/(pow(20,2)+1))
+
+##########################################################
+######## Skew Normal : ST ################################ ##########################################################
+
+######### delta0_st #####################################
+
+d0s[1]<-s0s[1]*z0s[1]+mu0s[1]
+mu0s[1]~dnorm(1.1, tau0s[1])
+z0s[1]~dnorm(0,1)I(0,)
+s0s[1]<-(6*1.5)/sqrt(pow(6,2)+1)
+tau0s[1]<-1/(pow(1.5,2)/(pow(6,2)+1))
+
+d0s[2]<-s0s[2]*z0s[2]+mu0s[2]
+mu0s[2]~dnorm(1.8, tau0s[2])
+z0s[2]~dnorm(0,1)I(0,)
+s0s[2]<-(1.1*2.3)/sqrt(pow(1.1,2)+1)
+tau0s[2]<-1/(pow(2.3,2)/(pow(1.1,2)+1))
+
+d0s[3]<-s0s[3]*z0s[3]+mu0s[3]
+mu0s[3]~dnorm(0.08, tau0s[3])
+z0s[3]~dnorm(0,1)I(0,)
+s0s[3]<-(3*0.9)/sqrt(pow(3,2)+1)
+tau0s[3]<-1/(pow(0.9,2)/(pow(3,2)+1))
+
+
+d0s[4]<-s0s[4]*z0s[4]+mu0s[4]
+mu0s[4]~dnorm(0.41, tau0s[4])
+z0s[4]~dnorm(0,1)I(0,)
+s0s[4]<-0
+tau0s[4]<-1/pow(0.315,2)
+
+########### delta1_st ###################################
+
+d1s[1]<-s1s[1]*z1s[1]+mu1s[1]
+mu1s[1]~dnorm(0.0, tau1s[1])
+z1s[1]~dnorm(0,1)I(0,)
+s1s[1]<-(0.36*0.9)/sqrt(pow(0.36,2)+1)
+tau1s[1]<-1/(pow(0.9,2)/(pow(0.36,2)+1))
+
+d1s[2]<-s1s[2]*z1s[2]+mu1s[2]
+mu1s[2]~dnorm(1.8,tau1s[2])
+z1s[2]~dnorm(0,1)I(0,)
+s1s[2]<-(-0.1*0.79)/sqrt(pow(-0.1,2)+1)
+tau1s[2]<-1/(pow(0.79,2)/(pow(-0.1,2)+1))
+
+d1s[3]<-s1s[3]*z1s[3]+mu1s[3]
+mu1s[3] ~ dnorm(1.9, tau1s[3])
+z1s[3]~dnorm(0,1)I(0,)
+s1s[3]<-(-0.16*0.75)/sqrt(pow(-0.16,2)+1)
+tau1s[3]<-1/(pow(0.75,2)/(pow(-0.16,2)+1))
+
+d1s[4]<-s1s[4]*z1s[4]+mu1s[4]
+mu1s[4]~ dnorm(0.11, tau1s[4])
+z1s[4]~dnorm(0,1)I(0,)
+s1s[4]<-(1.52*20)/sqrt(pow(20,2)+1)
+tau1s[4]<-1/(pow(1.52,2)/(pow(20,2)+1))
+
+
+deltae0<-d0e[4]
+deltae1<-d1e[4]
+
+deltas0<-d0s[4]
+deltas1<-d1s[4]
+
+
+
+
+}

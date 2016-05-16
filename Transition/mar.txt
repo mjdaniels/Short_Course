@@ -1,0 +1,79 @@
+# all variable names for ET has the suffix 'e' 
+# all variable names for ST has the suffix 's'
+
+Model{ 
+
+####### Enhancement arm ####################################
+
+for (i in 1:N1) {
+
+# Response model
+
+  	Y[i,1] 		~ dbern(pie[i,1])
+    pie[i,1] <-exp(betae[1])/(1+exp(betae[1]))
+    
+    for (j in 2:4){
+ 	Y[i,j]		~  dbern(pie[i,j])
+   pie[i,j]<- exp(gammae[j]+thetae*Y[i,j-1])/(1+exp(gammae[j]+thetae*Y[i,j-1]))	
+
+               	}
+		}
+
+
+############# Standard arm ##############################
+
+for (i in N1+1:N) {
+
+ # Response model
+ Y[i,1] 		~ dbern(pis[i,1])
+  pis[i,1] <-exp(betas[1])/(1+exp(betas[1]))
+  
+ for (j in 2:4){
+  Y[i,j]		~  dbern(pis[i,j])
+  pis[i,j]<- exp(gammas[j]+thetas*Y[i,j-1])/(1+exp(gammas[j]+thetas*Y[i,j-1]))	
+ 
+            	}
+		}
+
+######## Compute marginal probabilities and OR at each month
+
+mpie[1]<-exp(betae[1])/(1+exp(betae[1]))
+mpis[1]<-exp(betas[1])/(1+exp(betas[1]))
+OR[1]<-(mpie[1]*(1-mpis[1]))/(mpis[1]*(1-mpie[1]))
+logOR[1]<-log(OR[1])
+
+for (j in 2:4) {
+ebetae[j]<-(exp(gammae[j])+exp(2*gammae[j]+thetae)+exp(betae[j-1]+gammae[j]+thetae)+exp(betae[j-1]+2*gammae[j]+thetae))/(1+exp(betae[j-1])+exp(betae[j-1]+gammae[j])+exp(gammae[j]+thetae))
+betae[j]<-log(ebetae[j])
+mpie[j]<-ebetae[j]/(1+ebetae[j])
+
+ebetas[j]<-(exp(gammas[j])+exp(2*gammas[j]+thetas)+exp(betas[j-1]+gammas[j]+thetas)+exp(betas[j-1]+2*gammas[j]+thetas))/(1+exp(betas[j-1])+exp(betas[j-1]+gammas[j])+exp(gammas[j]+thetas))
+betas[j]<-log(ebetas[j])
+mpis[j]<-ebetas[j]/(1+ebetas[j])
+
+OR[j]<-(mpie[j]*(1-mpis[j]))/(mpis[j]*(1-mpie[j]))
+logOR[j]<-log(OR[j])
+              }
+
+
+########## Priors #########################################
+
+####### Priors for identifiable parameters ###############
+
+
+diff<-mpie[4]-mpis[4]
+diff1<-step(diff)
+
+betae[1]	~ dnorm(0, 1.0E-2)
+thetae  ~ dnorm(0, 1.0E-2)
+
+betas[1]	~ dnorm(0, 1.0E-2)
+thetas  ~ dnorm(0, 1.0E-2)
+
+for (j in 2:4){	
+ gammae[j]  ~ dnorm(0, 1.0E-2)
+ gammas[j]  ~ dnorm(0, 1.0E-2)
+}
+
+
+}

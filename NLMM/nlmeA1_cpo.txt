@@ -1,0 +1,55 @@
+model{
+
+for (i in 1:nrec){
+		y[i]~dnorm(mu.y[i],tau.y)
+		mu.y[i]<-A*pnorm(age[i],mu[id[i]],sigmasq.i[id[i]])}
+for (i in 1:nsub) {
+	mu[i]~dnorm(theta[group[i]],xi.inv[group[i]])
+	sigmasq.i[i]~dgamma(nu[group[i]],omega[group[i]])
+	group[i]~dcat(p[])		
+	for (l in 1:K) {	gind[i,l]<-equals(l,group[i])	}
+}
+p[1]<-v[1]
+for (l in 2:K) {	
+	p[l] <- v[l]*(1-v[l-1])*p[l-1]/v[l-1]
+	v[l-1] ~ dbeta(1,alpha)T(,0.99)
+}
+v[K] <- 1
+
+for (l in 1:K) {	
+	theta[l]~dnorm(theta0[1],tau.theta02)
+	xi.inv[l]~dgamma(xi0[1],xi0[2])
+	nu[l]~dgamma(nu0[1],nu0[2])
+	omega[l]~dgamma(omega0[1],omega0[2])
+}
+
+	munew~dnorm(theta[groupnew],xi.inv[groupnew])
+	sigmasqnew.i~dgamma(nu[groupnew],omega[groupnew])
+	groupnew~dcat(p[])		
+
+for (i in 1:nobs) {
+ mu.ynew[i]<-A*pnorm(agenew[i],munew,sigmasqnew.i)
+ ypdf[i]<-log(1/sqrt(2*3.14)*sqrt(tau.y))-1/2*tau.y*pow((ynew[i]-mu.ynew[i]),2)
+}
+
+ynewlogli<-sum(ypdf)
+
+############## prior
+tau.y~dgamma(1.0E-3, 1.0E-3)
+sigmasq.y<-1/tau.y
+
+A~dgamma(1,1)
+
+alpha~dgamma(1,1)
+
+theta0[1]~dnorm(16,0.072) 
+theta0[2]<-1/tau.theta02
+tau.theta02~dgamma(1, 12)
+xi0[1]~dgamma(4, 1) 
+xi0[2]~dgamma(1, 1) 
+nu0[1]~dgamma(13, 0.1) 
+nu0[2]~dgamma(1, 1) 
+omega0[1]~dgamma(20, 0.1)	
+omega0[2]~dgamma(1, 1)	
+
+}

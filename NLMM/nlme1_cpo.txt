@@ -1,0 +1,36 @@
+model{
+
+for (i in 1:nrec){
+		y[i]~dnorm(mu.y[i],tau.y)
+		mu.y[i]<-A*pnorm(age[i],mu[id[i]],sigmasq.i[id[i]])
+		}
+for (i in 1:nsub){
+	mu[i]~dnorm(mu0,tau.mu)
+	sigmasq.i[i]<-1/sigmasq[i]
+	sigmasq[i]~dlnorm(sigma0,tau.sigma)
+}
+
+munew~dnorm(mu0,tau.mu)
+sigmasqnew.i<-1/sigmasqnew
+sigmasqnew~dlnorm(sigma0,tau.sigma)
+
+for (i in 1:nobs) {
+ mu.ynew[i]<-A*pnorm(agenew[i],munew,sigmasqnew.i)
+ ypdf[i]<-log(1/sqrt(2*3.14)*sqrt(tau.y))-1/2*tau.y*pow((ynew[i]-mu.ynew[i]),2)
+}
+
+ynewlogli<-sum(ypdf)
+
+  
+############## prior
+tau.y~dgamma(1.0E-3, 1.0E-3)
+A~dgamma(1,1)
+mu0~dnorm(0,0.01)
+sigma0~dnorm(0,0.01)
+sigma.mu~dunif(0,100)
+sigma.sigma~dunif(0,100)
+tau.mu<-1/pow(sigma.mu,2)
+tau.sigma<-1/pow(sigma.sigma,2)
+
+
+}

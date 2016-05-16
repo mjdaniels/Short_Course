@@ -1,0 +1,54 @@
+model {  
+
+ for (i in 1:N)
+      { 
+	    y[i]~dbern(pp[i])
+        logit(pp[i])<-x1[i]*alpha0[id[i]]+x2[i]*theta0[id[i]]+theta*((trt[i]-1)*x2[i])
+                 }
+				 
+	for (j in 1:N1){
+	
+	alpha0[j]~dnorm(mu.alpha0[group[j]],tau.alpha0[group[j]])
+	mu.theta0[j]<-beta[group[j]]+phi[group[j]]*alpha0[j]
+    theta0[j]~dnorm(mu.theta0[j],tau.theta0[group[j]])		
+	group[j]~dcat(p[])		
+	for (l in 1:K) {	gind[j,l]<-equals(l,group[j])	} 	
+      }
+	  
+p[1]<-v[1]
+for (l in 2:K) {	
+	p[l] <- v[l]*(1-v[l-1])*p[l-1]/v[l-1]
+	v[l-1] ~ dbeta(1,alpha)T(,0.99)
+}
+v[K] <- 1
+
+for (l in 1:K) {	
+    mu.alpha0[l]~dnorm(mu.mu.alpha0,tau.mu.alpha0)
+	beta[l]~dnorm(mu.beta,tau.beta)
+	phi[l]~dnorm(mu.phi,tau.phi)
+	tau.alpha0[l]~dgamma(atau.alpha0,btau.alpha0)
+	tau.theta0[l]~dgamma(atau.theta0,btau.theta0)
+}
+
+
+#Prior distributions
+        mu.mu.alpha0~dnorm(-5.6,1/4)
+		mu.beta~dnorm(3.3,1/4)
+		mu.phi~dnorm(1.2,1/0.16)
+		tau.mu.alpha0~dgamma(0.1,0.4)
+        tau.beta~dgamma(0.1,0.4)
+        tau.phi~dgamma(1,0.16)
+        atau.alpha0~dgamma(1,1)
+        btau.alpha0~dgamma(1,1)
+        atau.theta0~dgamma(1,1)
+        btau.theta0~dgamma(1,1) 
+theta~dnorm(0, 1.0E-5)	
+alpha~dgamma(1,1)	
+
+cluster<-sum(cl[])
+for (l in 1:K){
+	sumind[l]<-sum(gind[,l])
+	cl[l]<-step(sumind[l]-1+0.001)
+}
+
+} 

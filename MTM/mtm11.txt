@@ -1,0 +1,65 @@
+model  CTQ_mtm1 { 
+
+# MTM(1) for CTQ1 data
+# y[i,j]: quit status 1=quit, 0=smoking
+# trt[i]: treatment group 1= wellness, 2= exercise
+# 
+
+## unstructured mean (model 1)
+## serial depedence differ at week 5 (model 1)
+
+
+
+                             
+       for (i in n1:N)
+      { 
+      # assume independence of the obs for first four weeks
+         for (j in 1:4)
+            {
+                  y[i,j]~dbern(p[i,j])
+                  logit(p[i,j])<-etaM[i,j]
+                  etaM[i,j]<-alpha
+                  yrep[i,j]~dbern(p[i,j])
+                  
+            }
+             
+         for (j in 5:12)
+            {
+                  y[i,j]~dbern(p[i,j])
+                  logit(p[i,j])<-delta[i,j]+gamma[i,j]*y[i,j-1]           
+                  
+                  
+                    
+                  etaM[i,j]<-theta0[j-4]+theta*(trt[i]-1)
+                  
+                  delta[i,j]<-MTM1Delta(etaM[i,j],etaM[i,j-1],gamma[i,j]) 
+                  
+                  gamma[i,j]<-(phi0+phi1*(trt[i]-1) )*equals(j,5) +(phi2+phi3*(trt[i]-1) )*(1-equals(j,5))
+                 
+                  yrep[i,j]~dbern(p[i,j])
+                  
+                 }
+                 
+                 ### compute sum(yrep[i,5]+..+yrep[i,12])
+                 T[i]<-sum(yrep[i,5:12]) 
+      }
+
+
+
+
+#Prior distributions 
+         alpha~dnorm(0,1.0E-5)
+
+ for (i in 1:8) {
+         theta0[i]~dnorm(0, 1.0E-5)
+}
+         theta~dnorm(0, 1.0E-5) # treatment effect
+         
+         phi0~dnorm(0, 1.0E-5)
+         phi1~dnorm(0, 1.0E-5)
+         phi2~dnorm(0, 1.0E-5)
+         phi3~dnorm(0, 1.0E-5)
+
+} 
+
+#end model
