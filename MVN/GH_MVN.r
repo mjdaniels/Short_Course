@@ -244,8 +244,7 @@ GHLM1<-bugs(  data  = dat,
              working.directory = "D:/dandan/short course/examples/GH/model1",
              clearWD = FALSE,
              debug=TRUE,
-            DIC=FALSE,
-             codaPkg=TRUE
+            
 )
 
 
