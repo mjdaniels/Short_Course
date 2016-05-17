@@ -1,0 +1,117 @@
+model{
+
+  for (i in 1:N1)
+{ y[i,1]~dnorm(mu1[group[i]],tau1[group[i]])
+  group[i]~dcat(p[])		
+	for (l in 1:K) {	gind[i,l]<-equals(l,group[i])	
+logli0[i,l]<-1/sqrt(2*3.14)*sqrt(tau1[l])*exp(-0.5*tau1[l]*pow((y[i,1]-mu1[l]),2))/ysd
+}
+logli[i]<-log(inprod(p[1:K],logli0[i,1:K]))
+} 
+
+for (i in (N1+1):N2)
+{ y[i,1]~dnorm(mu1[group[i]],tau1[group[i]])
+  mu22[i]<-beta0[group[i]]+phi21[group[i]]*(y[i,1]-mu1[group[i]])
+  y[i,2]~dnorm(mu22[i],tau2[group[i]])
+  group[i]~dcat(p[])		
+	for (l in 1:K) {	gind[i,l]<-equals(l,group[i])	
+	mucls22[i,l]<-beta0[l]+phi21[l]*(y[i,1]-mu1[l])
+logli0[i,l]<-(1/sqrt(2*3.14)*sqrt(tau1[l]))*exp(-0.5*tau1[l]*pow((y[i,1]-mu1[l]),2))/ysd*
+    1/sqrt(2*3.14)*sqrt(tau2[l])*exp(-0.5*tau2[l]*pow((y[i,2]-mucls22[i,l]),2))/ysd
+}
+logli[i]<-log(inprod(p[1:K],logli0[i,1:K]))
+} 
+
+for (i in (N2+1):N)
+{ y[i,1]~dnorm(mu1[group[i]],tau1[group[i]])
+  mu22[i]<-beta0[group[i]]+phi21[group[i]]*(y[i,1]-mu1[group[i]])
+  mu33[i]<-beta1[group[i]]+phi31[group[i]]*(y[i,1]-mu1[group[i]])+
+     phi32[group[i]]*(y[i,2]-beta0[group[i]])
+  y[i,2]~dnorm(mu22[i],tau2[group[i]])
+  y[i,3]~dnorm(mu33[i],tau3[group[i]])
+  group[i]~dcat(p[])		
+	for (l in 1:K) {	gind[i,l]<-equals(l,group[i])	
+	mucls22[i,l]<-beta0[l]+phi21[l]*(y[i,1]-mu1[l])
+    mucls33[i,l]<-beta1[l]+phi31[l]*(y[i,1]-mu1[l])+
+	       phi32[l]*(y[i,2]-beta0[l])
+	logli0[i,l]<-1/sqrt(2*3.14)*sqrt(tau1[l])*exp(-0.5*tau1[l]*pow((y[i,1]-mu1[l]),2))/ysd*
+    1/sqrt(2*3.14)*sqrt(tau2[l])*exp(-0.5*tau2[l]*pow((y[i,2]-mucls22[i,l]),2))/ysd*
+    1/sqrt(2*3.14)*sqrt(tau3[l])*exp(-0.5*tau3[l]*pow((y[i,3]-mucls33[i,l]),2))/ysd
+}
+logli[i]<-log(inprod(p[1:K],logli0[i,1:K]))
+} 
+
+
+p[1]<-v[1]
+for (l in 2:K) {	
+	p[l] <- v[l]*(1-v[l-1])*p[l-1]/v[l-1]
+	v[l-1] ~ dbeta(1,alpha)T(,0.99)
+}
+v[K] <- 1
+
+
+for (l in 1:K) {	
+phi21[l]~dnorm(0, tau.phi21)
+phi31[l]~dnorm(0, tau.phi3)
+phi32[l]~dnorm(0, tau.phi3)
+mu1[l]~dnorm(mu10,tau.mu1)
+beta0[l]~dnorm(beta00, tau.beta0)
+beta1[l]~dnorm(beta10, tau.beta1)
+tau1[l]~dgamma(s1,s1*w1)
+tau2[l]~dgamma(s1,s1*w2)
+tau3[l]~dgamma(s1,s1*w3)
+mu2[l]<-beta0[l]
+mu3[l]<-beta1[l]
+}
+
+smu3[1]<-p[1]*mu3[1]
+smu2[1]<-p[1]*mu2[1]
+smu1[1]<-p[1]*mu1[1]
+for (l in 2:K) {
+smu1[l]<-smu1[l-1]+p[l]*mu1[l]
+smu2[l]<-smu2[l-1]+p[l]*mu2[l]
+smu3[l]<-smu3[l-1]+p[l]*mu3[l]
+}
+
+mmu1<-smu1[K]*ysd+ymean
+mmu2<-smu2[K]*ysd+ymean
+mmu3<-smu3[K]*ysd+ymean
+
+############## prior
+
+alpha~dgamma(1,1)
+mu10~dnorm(0,2)
+beta00~dnorm(0,2)
+beta10~dnorm(0,2)
+
+s1a~dgamma(1,1)
+s1<-1/s1a+2
+
+w1~dgamma(1,2/g1)
+w2~dgamma(1,2/g2)
+w3~dgamma(1,2/g3)
+
+
+tau.mu1~dgamma(s2,s2*lambda2*g1)
+tau.beta0~dgamma(s2,s2*lambda2*g2)
+tau.beta1~dgamma(s2,s2*lambda2*g3)
+
+s2a~dgamma(1,1)
+s2<-1/s2a+2
+lambda2~dgamma(1,1)
+
+tau.phi21~dgamma(s3,s3*lambda3)
+tau.phi3~dgamma(s3,s3*lambda3)
+
+s3a~dgamma(1,1)
+s3<-1/s3a+2
+lambda3~dgamma(1,1)
+
+
+cluster<-sum(cl[])
+for (l in 1:K){
+	sumind[l]<-sum(gind[,l])
+	cl[l]<-step(sumind[l]-1+0.001)
+}
+
+}
